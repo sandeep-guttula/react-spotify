@@ -5,7 +5,7 @@ const Login = () => {
 
     const handleClick = () => {
         const client_id = "7d62971e74844bd6857e32c0f9936118"
-        const redirect_uri = "http://localhost:3000/"
+        const redirect_uri = "https://react-spotify-pi.vercel.app/"
         const apiUrl = "https://accounts.spotify.com/authorize";
         const scope = [
             'user-read-email','user-read-private',
