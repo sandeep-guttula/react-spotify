@@ -6,7 +6,7 @@ import { useStateProvider } from "../utils/StateProvider";
 import { reducerCases } from "../utils/Constants";
 
 
-const Body = () => {
+const Body = ({headerBackground}) => {
     const [{ token, selectedPlaylistId , selectedPlaylist }, dispatch ] = useStateProvider();
     useEffect(() => {
         const getInitialPlaylist = async () => {
@@ -42,85 +42,115 @@ const Body = () => {
         getInitialPlaylist();
       }, [token, dispatch, selectedPlaylistId]);
       
+      const msToMinutesAndSeconds = (ms) => {
+        var minutes = Math.floor(ms / 60000);
+        var seconds = ((ms % 60000) / 1000).toFixed(0);
+        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+      };
+
+
+      const playTrack = async (
+        id,
+        name,
+        artists,
+        image,
+        context_uri,
+        track_number
+      ) => {
+        const response = await axios.put(
+          `https://api.spotify.com/v1/me/player/play`,
+          {
+            context_uri,
+            offset: {
+              position: track_number - 1,
+            },
+            position_ms: 0,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+          }
+        );
+        if (response.status === 204) {
+          const currentPlaying = {
+            id,
+            name,
+            artists,
+            image,
+          };
+          dispatch({ type: reducerCases.SET_PLAYING, currentPlaying });
+          dispatch({ type: reducerCases.SET_PLAYER_STATE, playerState: true });
+        } else {
+          dispatch({ type: reducerCases.SET_PLAYER_STATE, playerState: true });
+        }
+      };
 
     return (
-        <Container>
-            {
-                selectedPlaylist && (
-                    <>
-                        <div className="playlist" >
-                            <div className="image" >
-                                <img 
-                                    src={selectedPlaylist.image}
-                                    alt="playlist"
-                                />
-                            </div>
-                            <div className="details">
-                                <span className="type" >
-                                    Playlist
-                                </span>
-                                <h1 className="title" >
-                                    {
-                                        selectedPlaylist.name
-                                    }
-                                </h1>
-                                <p className="description" > {selectedPlaylist.description}
-                                </p>
-                            </div>
+        <Container headerBackground={headerBackground} >
+          {
+            selectedPlaylist && (
+              <>
+                <div className="playlist" >
+                  <div className="image" >
+                      <img src={selectedPlaylist.image} alt="playlist"/>
+                  </div>
+                    <div className="details">
+                      <span className="type" >Playlist </span>
+                      <h1 className="title" >
+                          {selectedPlaylist.name}
+                      </h1>
+                      <p className="description" > {selectedPlaylist.description} </p>
+                    </div>
+                </div>
+                <div className="list" >
+                    <div className="header-row">
+                        <div className="col" >
+                            <span>#</span>
                         </div>
-                        <div className="list" >
-                            <div className="header-row">
-                                <div className="col" >
-                                    <span>#</span>
-                                </div>
-                                <div className="col" >
-                                    <span>Title</span>
-                                </div>
-                                <div className="col" >
-                                    <span>Album</span>
-                                </div>
-                                <div className="col" >
-                                    <span><AiFillClockCircle/></span>
-                                </div>
-                            </div>
-                            <div className="tracks" >
-                                {
-                                    selectedPlaylist.tracks.map(({ id,
-                                            name,
-                                            artists,
-                                            image,
-                                            duration,
-                                            album, context_uri, track_number}, index) => {
-                                        return (
-                                            <div className="row" key={id} >
-                                                <div className="col" >
-                                                    <span>{index+1}</span>
-                                                </div>
-                                                <div className="col detail" >
-                                                    <div className="image">
-                                                        <img src={image} alt="track" />
-                                                    </div>
-                                                    <div className="info" >
-                                                        <span className="name" >{name}</span>
-                                                        <span className="">{artists}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="col" >
-                                                    <span>{album}</span>
-                                                </div>
-                                                <div className="col" >
-                                                    <span>{duration}</span>
-                                                </div>
-
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </div>
+                        <div className="col" >
+                            <span>Title</span>
                         </div>
-                    </>
-                )
-            }
+                        <div className="col" >
+                            <span>Album</span>
+                        </div>
+                        <div className="col" >
+                            <span><AiFillClockCircle/></span>
+                        </div>
+                    </div>
+                    <div className="tracks" >
+                        {
+                          selectedPlaylist.tracks.map(({ id,name,artists,image,duration,album, context_uri, track_number}, index) => {
+                            return (
+                              <div className="row" key={id} onClick={()=> playTrack(id,name,artists,image, context_uri, track_number)} >
+                                <div className="col" >
+                                  <span>{index+1}</span>
+                                </div>
+                                <div className="col detail" >
+                                  <div className="image">
+                                    <img src={image} alt="track" />
+                                  </div>
+                                  <div className="info" >
+                                    <span className="name" >{name}</span>
+                                    <span className="">{artists}</span>
+                                  </div>
+                                </div>
+                                <div className="col" >
+                                  <span>{album}</span>
+                                </div>
+                                <div className="col" >
+                                  <span>{msToMinutesAndSeconds(duration)}</span>
+                                </div>
+                              </div>
+                            )
+                          })
+                        }
+                    </div>
+                </div>
+              </>
+            )
+          }
         </Container>
     )
 }

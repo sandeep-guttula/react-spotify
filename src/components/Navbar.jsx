@@ -32,7 +32,7 @@ const Container = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 2rem;
-  height: 15vh;
+  height: 13.6vh;
   position: sticky;
   top: 0;
   transition: 0.3s ease-in-out;
